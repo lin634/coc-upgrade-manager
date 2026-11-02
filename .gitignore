@@ -1,0 +1,23 @@
+# 构建产物
+android/build/
+*.apk
+*.apk.idsig
+*.idsig
+
+# 本地调试签名密钥(首次运行 build.sh 会自动生成,不要提交)
+android/debug.keystore
+
+# Python
+__pycache__/
+*.pyc
+
+# 本地数据/配置(可能含 API Key 与账号信息)
+config.json
+data.json
+*.local.json
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
