@@ -166,8 +166,8 @@ public class PotionActivity extends Activity {
         customMultEt.setTextSize(14);
         customMultEt.setGravity(Gravity.CENTER);
         customMultEt.setBackgroundResource(R.drawable.bg_input);
-        customMultEt.setPadding(dp(10), dp(4), dp(10), dp(4));
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(72), dp(48));
+        customMultEt.setPadding(dp(8), dp(2), dp(8), dp(2));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(48), dp(32));
         clp.setMargins(dp(30), dp(4), dp(6), 0);
         customMultRow.addView(customMultEt, clp);
         customMultRow.addView(text("倍(支持小数)", 13, TEXT_MAIN));
@@ -176,18 +176,18 @@ public class PotionActivity extends Activity {
         c2.addView(text("🧮 减免试算(输入剩余时间)", 12, TEXT_SUB));
         LinearLayout calcRow = new LinearLayout(this);
         calcRow.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(44), dp(48));
+        LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(30), dp(32));
         clpD.setMargins(0, dp(6), dp(2), 0);
         calcEtD = calcEdit();
         calcRow.addView(calcEtD, clpD);
         calcRow.addView(text("天", 12, TEXT_SUB));
         calcEtH = calcEdit();
-        LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(44), dp(48));
+        LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(30), dp(32));
         clpH2.setMargins(dp(6), dp(6), dp(2), 0);
         calcRow.addView(calcEtH, clpH2);
         calcRow.addView(text("时", 12, TEXT_SUB));
         calcEtM = calcEdit();
-        LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(44), dp(48));
+        LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(30), dp(32));
         clpM2.setMargins(dp(6), dp(6), dp(2), 0);
         calcRow.addView(calcEtM, clpM2);
         calcRow.addView(text("分", 12, TEXT_SUB));
@@ -235,8 +235,8 @@ public class PotionActivity extends Activity {
         bottlesEt.setTextSize(14);
         bottlesEt.setGravity(Gravity.CENTER);
         bottlesEt.setBackgroundResource(R.drawable.bg_input);
-        bottlesEt.setPadding(dp(8), dp(4), dp(8), dp(4));
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(80), dp(48));
+        bottlesEt.setPadding(dp(6), dp(2), dp(6), dp(2));
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(54), dp(32));
         blp.setMargins(0, dp(6), dp(8), 0);
         bottlesRow.addView(bottlesEt, blp);
         bottlesRow.addView(text("瓶(可叠加,每瓶持续1小时)", 12, TEXT_SUB));
@@ -251,8 +251,8 @@ public class PotionActivity extends Activity {
         hoursEt.setTextSize(14);
         hoursEt.setGravity(Gravity.CENTER);
         hoursEt.setBackgroundResource(R.drawable.bg_input);
-        hoursEt.setPadding(dp(8), dp(4), dp(8), dp(4));
-        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(dp(64), dp(48));
+        hoursEt.setPadding(dp(6), dp(2), dp(6), dp(2));
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(dp(42), dp(32));
         hlp.setMargins(0, dp(6), dp(4), 0);
         customRow.addView(hoursEt, hlp);
         customRow.addView(text("时", 12, TEXT_SUB));
@@ -262,8 +262,8 @@ public class PotionActivity extends Activity {
         minutesEt.setTextSize(14);
         minutesEt.setGravity(Gravity.CENTER);
         minutesEt.setBackgroundResource(R.drawable.bg_input);
-        minutesEt.setPadding(dp(8), dp(4), dp(8), dp(4));
-        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(64), dp(48));
+        minutesEt.setPadding(dp(6), dp(2), dp(6), dp(2));
+        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(42), dp(32));
         mlp.setMargins(dp(8), dp(6), dp(4), 0);
         customRow.addView(minutesEt, mlp);
         customRow.addView(text("分(如 0时5分 = 5分钟)", 12, TEXT_SUB));
@@ -481,7 +481,7 @@ public class PotionActivity extends Activity {
         e.setTextSize(14);
         e.setGravity(Gravity.CENTER);
         e.setBackgroundResource(R.drawable.bg_input);
-        e.setPadding(dp(8), dp(4), dp(8), dp(4));
+        e.setPadding(dp(4), dp(2), dp(4), dp(2));
         return e;
     }
 
