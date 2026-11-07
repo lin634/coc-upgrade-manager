@@ -163,9 +163,11 @@ public class PotionActivity extends Activity {
         customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         customMultEt.setHint("如 1.5");
+        customMultEt.setTextSize(14);
+        customMultEt.setGravity(Gravity.CENTER);
         customMultEt.setBackgroundResource(R.drawable.bg_input);
-        customMultEt.setPadding(dp(10), dp(8), dp(10), dp(8));
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(72), dp(40));
+        customMultEt.setPadding(dp(10), dp(4), dp(10), dp(4));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(72), dp(48));
         clp.setMargins(dp(30), dp(4), dp(6), 0);
         customMultRow.addView(customMultEt, clp);
         customMultRow.addView(text("倍(支持小数)", 13, TEXT_MAIN));
@@ -174,21 +176,18 @@ public class PotionActivity extends Activity {
         c2.addView(text("🧮 减免试算(输入剩余时间)", 12, TEXT_SUB));
         LinearLayout calcRow = new LinearLayout(this);
         calcRow.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(44),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(44), dp(48));
         clpD.setMargins(0, dp(6), dp(2), 0);
         calcEtD = calcEdit();
         calcRow.addView(calcEtD, clpD);
         calcRow.addView(text("天", 12, TEXT_SUB));
         calcEtH = calcEdit();
-        LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(44),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(44), dp(48));
         clpH2.setMargins(dp(6), dp(6), dp(2), 0);
         calcRow.addView(calcEtH, clpH2);
         calcRow.addView(text("时", 12, TEXT_SUB));
         calcEtM = calcEdit();
-        LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(44),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(44), dp(48));
         clpM2.setMargins(dp(6), dp(6), dp(2), 0);
         calcRow.addView(calcEtM, clpM2);
         calcRow.addView(text("分", 12, TEXT_SUB));
@@ -233,10 +232,11 @@ public class PotionActivity extends Activity {
         bottlesEt = new EditText(this);
         bottlesEt.setInputType(InputType.TYPE_CLASS_NUMBER);
         bottlesEt.setText("1");
+        bottlesEt.setTextSize(14);
+        bottlesEt.setGravity(Gravity.CENTER);
         bottlesEt.setBackgroundResource(R.drawable.bg_input);
-        bottlesEt.setPadding(dp(10), dp(10), dp(10), dp(10));
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(80),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        bottlesEt.setPadding(dp(8), dp(4), dp(8), dp(4));
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(80), dp(48));
         blp.setMargins(0, dp(6), dp(8), 0);
         bottlesRow.addView(bottlesEt, blp);
         bottlesRow.addView(text("瓶(可叠加,每瓶持续1小时)", 12, TEXT_SUB));
@@ -248,20 +248,22 @@ public class PotionActivity extends Activity {
         hoursEt = new EditText(this);
         hoursEt.setInputType(InputType.TYPE_CLASS_NUMBER);
         hoursEt.setHint("0");
+        hoursEt.setTextSize(14);
+        hoursEt.setGravity(Gravity.CENTER);
         hoursEt.setBackgroundResource(R.drawable.bg_input);
-        hoursEt.setPadding(dp(10), dp(10), dp(10), dp(10));
-        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(dp(64),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        hoursEt.setPadding(dp(8), dp(4), dp(8), dp(4));
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(dp(64), dp(48));
         hlp.setMargins(0, dp(6), dp(4), 0);
         customRow.addView(hoursEt, hlp);
         customRow.addView(text("时", 12, TEXT_SUB));
         minutesEt = new EditText(this);
         minutesEt.setInputType(InputType.TYPE_CLASS_NUMBER);
         minutesEt.setHint("30");
+        minutesEt.setTextSize(14);
+        minutesEt.setGravity(Gravity.CENTER);
         minutesEt.setBackgroundResource(R.drawable.bg_input);
-        minutesEt.setPadding(dp(10), dp(10), dp(10), dp(10));
-        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(64),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
+        minutesEt.setPadding(dp(8), dp(4), dp(8), dp(4));
+        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(64), dp(48));
         mlp.setMargins(dp(8), dp(6), dp(4), 0);
         customRow.addView(minutesEt, mlp);
         customRow.addView(text("分(如 0时5分 = 5分钟)", 12, TEXT_SUB));
@@ -477,8 +479,9 @@ public class PotionActivity extends Activity {
         EditText e = new EditText(this);
         e.setInputType(InputType.TYPE_CLASS_NUMBER);
         e.setTextSize(14);
+        e.setGravity(Gravity.CENTER);
         e.setBackgroundResource(R.drawable.bg_input);
-        e.setPadding(dp(6), dp(8), dp(6), dp(8));
+        e.setPadding(dp(8), dp(4), dp(8), dp(4));
         return e;
     }
 
