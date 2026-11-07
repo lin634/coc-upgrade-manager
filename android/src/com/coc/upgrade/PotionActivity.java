@@ -164,12 +164,11 @@ public class PotionActivity extends Activity {
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         customMultEt.setHint("如 1.5");
         customMultEt.setBackgroundResource(R.drawable.bg_input);
-        customMultEt.setPadding(dp(10), dp(10), dp(10), dp(10));
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(80),
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        clp.setMargins(dp(24), dp(6), dp(8), 0);
+        customMultEt.setPadding(dp(10), dp(8), dp(10), dp(8));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(72), dp(40));
+        clp.setMargins(dp(30), dp(4), dp(6), 0);
         customMultRow.addView(customMultEt, clp);
-        customMultRow.addView(text("倍(支持小数,如 1.5 或 20)", 12, TEXT_SUB));
+        customMultRow.addView(text("倍(支持小数)", 13, TEXT_MAIN));
         c2.addView(customMultRow);
         // 🧮 减免试算:输入项目剩余时间,按当前倍率与时长实时算可减免的小时数
         c2.addView(text("🧮 减免试算(输入剩余时间)", 12, TEXT_SUB));
@@ -290,9 +289,9 @@ public class PotionActivity extends Activity {
             @Override public void afterTextChanged(android.text.Editable s) {
                 double v = parseMultInput();
                 if (v > 0) {
-                    RadioButton crb = (RadioButton) subRg.findViewById(1002);
+                    RadioButton crb = (RadioButton) subRg.findViewById(2000);
                     if (crb != null) crb.setText("自定义倍率(" + fmtMult(v) + "×,可修改)");
-                    if (subRg.getCheckedRadioButtonId() == 1002) {
+                    if (subRg.getCheckedRadioButtonId() == 2000) {
                         mult = v;
                         updateEffect();
                     }
@@ -370,13 +369,13 @@ public class PotionActivity extends Activity {
         }
         RadioButton customRb = new RadioButton(this);
         customRb.setText("自定义倍率");
-        customRb.setId(1002);
+        customRb.setId(2000);
         subRg.addView(customRb);
         subRg.check(1000);
         mult = MULTS[0];
         customMultRow.setVisibility(View.GONE);
         subRg.setOnCheckedChangeListener((g, id) -> {
-            if (id == 1002) {
+            if (id == 2000) {
                 customMultRow.setVisibility(View.VISIBLE);
                 mult = parseMultInput(); // 输入为空时为 0,效果栏会提示输入有效倍率
                 updateEffect();
