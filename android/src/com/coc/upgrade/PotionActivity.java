@@ -163,7 +163,6 @@ public class PotionActivity extends Activity {
         customMultEt = new EditText(this);
         customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        customMultEt.setHint("如 1.5");
         customMultEt.setTextSize(14);
         customMultEt.setGravity(Gravity.CENTER);
         customMultEt.setBackgroundResource(R.drawable.bg_input);

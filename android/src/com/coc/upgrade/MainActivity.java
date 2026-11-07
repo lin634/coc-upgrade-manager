@@ -1139,7 +1139,6 @@ public class MainActivity extends Activity {
         customMultEt.setTextSize(14);
         customMultEt.setBackgroundResource(R.drawable.bg_input);
         customMultEt.setPadding(dp(10), dp(8), dp(10), dp(8));
-        customMultEt.setHint("如 1.5");
         LinearLayout.LayoutParams cmlp = new LinearLayout.LayoutParams(dp(64), dp(38));
         cmlp.setMargins(dp(24), dp(2), dp(6), 0);
         customMultRow.addView(customMultEt, cmlp);
