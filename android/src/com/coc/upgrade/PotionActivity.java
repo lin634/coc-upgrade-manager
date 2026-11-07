@@ -158,6 +158,7 @@ public class PotionActivity extends Activity {
         // 自定义倍率输入行(选中「自定义倍率」时显示)
         customMultRow = new LinearLayout(this);
         customMultRow.setGravity(Gravity.CENTER_VERTICAL);
+        customMultRow.setClipChildren(false);
         customMultRow.setVisibility(View.GONE);
         customMultEt = new EditText(this);
         customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
@@ -168,30 +169,34 @@ public class PotionActivity extends Activity {
         customMultEt.setBackgroundResource(R.drawable.bg_input);
         customMultEt.setPadding(dp(8), dp(2), dp(8), dp(2));
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(48), dp(32));
-        clp.setMargins(dp(30), dp(4), dp(6), 0);
+        clp.setMargins(dp(30), 0, dp(6), 0);
         customMultRow.addView(customMultEt, clp);
         customMultRow.addView(text("倍(支持小数)", 13, TEXT_MAIN));
-        c2.addView(customMultRow);
+        LinearLayout.LayoutParams cmlp2 = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cmlp2.setMargins(0, dp(4), 0, 0);
+        c2.addView(customMultRow, cmlp2);
         // 🧮 减免试算:输入项目剩余时间,按当前倍率与时长实时算可减免的小时数
         c2.addView(text("🧮 减免试算(输入剩余时间)", 12, TEXT_SUB));
         LinearLayout calcRow = new LinearLayout(this);
         calcRow.setGravity(Gravity.CENTER_VERTICAL);
+        calcRow.setClipChildren(false);
         LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(30), dp(32));
-        clpD.setMargins(0, dp(6), dp(2), 0);
+        clpD.setMargins(0, 0, dp(2), 0);
         calcEtD = calcEdit();
         calcRow.addView(calcEtD, clpD);
         calcRow.addView(text("天", 12, TEXT_SUB));
         calcEtH = calcEdit();
         LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(30), dp(32));
-        clpH2.setMargins(dp(6), dp(6), dp(2), 0);
+        clpH2.setMargins(dp(6), 0, dp(2), 0);
         calcRow.addView(calcEtH, clpH2);
         calcRow.addView(text("时", 12, TEXT_SUB));
         calcEtM = calcEdit();
         LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(30), dp(32));
-        clpM2.setMargins(dp(6), dp(6), dp(2), 0);
+        clpM2.setMargins(dp(6), 0, dp(2), 0);
         calcRow.addView(calcEtM, clpM2);
         calcRow.addView(text("分", 12, TEXT_SUB));
-        c2.addView(calcRow);
+        c2.addView(calcRow, marginLp(dp(6)));
         calcTv = text("", 13, GREEN, true);
         LinearLayout.LayoutParams calcLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -229,6 +234,7 @@ public class PotionActivity extends Activity {
         // 按瓶数行
         bottlesRow = new LinearLayout(this);
         bottlesRow.setGravity(Gravity.CENTER_VERTICAL);
+        bottlesRow.setClipChildren(false);
         bottlesEt = new EditText(this);
         bottlesEt.setInputType(InputType.TYPE_CLASS_NUMBER);
         bottlesEt.setText("1");
@@ -237,13 +243,14 @@ public class PotionActivity extends Activity {
         bottlesEt.setBackgroundResource(R.drawable.bg_input);
         bottlesEt.setPadding(dp(6), dp(2), dp(6), dp(2));
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(54), dp(32));
-        blp.setMargins(0, dp(6), dp(8), 0);
+        blp.setMargins(0, 0, dp(8), 0);
         bottlesRow.addView(bottlesEt, blp);
         bottlesRow.addView(text("瓶(可叠加,每瓶持续1小时)", 12, TEXT_SUB));
-        c3.addView(bottlesRow);
+        c3.addView(bottlesRow, marginLp(dp(6)));
         // 自定义时长行(支持几分几秒的剩余药水)
         customRow = new LinearLayout(this);
         customRow.setGravity(Gravity.CENTER_VERTICAL);
+        customRow.setClipChildren(false);
         customRow.setVisibility(View.GONE);
         hoursEt = new EditText(this);
         hoursEt.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -253,7 +260,7 @@ public class PotionActivity extends Activity {
         hoursEt.setBackgroundResource(R.drawable.bg_input);
         hoursEt.setPadding(dp(6), dp(2), dp(6), dp(2));
         LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(dp(42), dp(32));
-        hlp.setMargins(0, dp(6), dp(4), 0);
+        hlp.setMargins(0, 0, dp(4), 0);
         customRow.addView(hoursEt, hlp);
         customRow.addView(text("时", 12, TEXT_SUB));
         minutesEt = new EditText(this);
@@ -264,10 +271,10 @@ public class PotionActivity extends Activity {
         minutesEt.setBackgroundResource(R.drawable.bg_input);
         minutesEt.setPadding(dp(6), dp(2), dp(6), dp(2));
         LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(dp(42), dp(32));
-        mlp.setMargins(dp(8), dp(6), dp(4), 0);
+        mlp.setMargins(dp(8), 0, dp(4), 0);
         customRow.addView(minutesEt, mlp);
         customRow.addView(text("分(如 0时5分 = 5分钟)", 12, TEXT_SUB));
-        c3.addView(customRow);
+        c3.addView(customRow, marginLp(dp(6)));
         effectTv = text("", 12, TEXT_SUB);
         LinearLayout.LayoutParams elp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -473,6 +480,14 @@ public class PotionActivity extends Activity {
             note = "";
         }
         calcTv.setText(note + "可减免约 " + fmtDur(saved / 3600.0) + "的工作量");
+    }
+
+    /** 行容器的外边距:间距放在行上而不是子输入框上,避免「居中+margin」叠加导致行高小于子控件、底部被裁 */
+    private LinearLayout.LayoutParams marginLp(int topDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(topDp), 0, 0);
+        return lp;
     }
 
     private EditText calcEdit() {
