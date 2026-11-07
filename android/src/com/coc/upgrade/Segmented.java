@@ -35,6 +35,7 @@ public class Segmented extends LinearLayout {
             TextView tv = new TextView(ctx);
             tv.setText(labels[i]);
             tv.setTextSize(13);
+            tv.setSingleLine(true);
             tv.setGravity(Gravity.CENTER);
             tv.setPadding(dp(8), dp(9), dp(8), dp(9));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(

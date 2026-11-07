@@ -145,7 +145,7 @@ public class PotionActivity extends Activity {
         LinearLayout c2 = card(LinearLayout.VERTICAL);
         c2.setPadding(dp(14), dp(12), dp(14), dp(12));
         c2.addView(text("① 选择加速倍率", 14, TEXT_MAIN, true));
-        multSeg = new Segmented(this, new String[]{"2×", "10×", "24×", "自定义倍率"}, 0,
+        multSeg = new Segmented(this, new String[]{"2×", "10×", "24×", "自定义"}, 0,
                 idx -> onMultPicked(idx));
         LinearLayout.LayoutParams mslp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);

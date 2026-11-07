@@ -18,8 +18,6 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +25,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,8 +57,7 @@ public class MainActivity extends Activity {
     /** 账号下拉里的"全部账号"总览项(哨兵值,不是真实账号名) */
     private static final String ALL = "全部账号";
 
-    private Spinner accountSpinner;
-    private ArrayAdapter<String> accountAdapter;
+    private TextView accountSel;
     private ListView listView;
     private TimerAdapter timerAdapter;
     private TextView statusView;
@@ -211,26 +207,14 @@ public class MainActivity extends Activity {
         accountCard.setGravity(Gravity.CENTER_VERTICAL);
         accountCard.setPadding(dp(14), dp(6), dp(8), dp(6));
         accountCard.addView(text("账号", 14, TEXT_MAIN, true));
-        accountSpinner = new Spinner(this);
-        accountAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
-        accountAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        accountSpinner.setAdapter(accountAdapter);
-        accountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                currentAccount = accountAdapter.getItem(pos);
-                if (timerAdapter != null && timerAdapter.selMode) exitSelMode();
-                refreshList();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> p) {
-            }
-        });
+        accountSel = text("全部账号 ▾", 15, TEXT_MAIN, true);
+        accountSel.setBackgroundResource(R.drawable.bg_pill_container);
+        accountSel.setPadding(dp(16), dp(9), dp(16), dp(9));
+        accountSel.setOnClickListener(v -> showAccountPicker());
         LinearLayout.LayoutParams splp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         splp.setMargins(dp(8), 0, dp(8), 0);
-        accountCard.addView(accountSpinner, splp);
+        accountCard.addView(accountSel, splp);
         Button addBtn = btn("＋", false, 38);
         addBtn.setTextSize(16);
         addBtn.setPadding(dp(14), 0, dp(14), 0);
@@ -438,22 +422,59 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------- 账号
 
     private void refreshAccounts() {
-        accountAdapter.clear();
-        accountAdapter.add(ALL);
-        int sel = 0;
+        if (currentAccount == null) currentAccount = ALL;
+        boolean exists = ALL.equals(currentAccount);
         JSONArray as = Store.accounts();
         for (int i = 0; i < as.length(); i++) {
             JSONObject a = as.optJSONObject(i);
-            if (a == null) continue;
-            String n = a.optString("name");
-            if (ALL.equals(n)) continue; // 账号名不能占用总览项
-            accountAdapter.add(n);
-            if (n.equals(currentAccount)) sel = accountAdapter.getCount() - 1;
+            if (a != null && a.optString("name").equals(currentAccount)) exists = true;
         }
-        if (currentAccount == null) currentAccount = ALL;
-        if (ALL.equals(currentAccount)) sel = 0;
-        accountSpinner.setSelection(sel);
+        if (!exists) currentAccount = ALL;
+        accountSel.setText(currentAccount + " ▾");
         refreshList();
+    }
+
+    /** 账号选择:自绘卡片对话框(替代原生下拉) */
+    private void showAccountPicker() {
+        List<String> names = new ArrayList<>();
+        names.add(ALL);
+        JSONArray as = Store.accounts();
+        for (int i = 0; i < as.length(); i++) {
+            JSONObject a = as.optJSONObject(i);
+            if (a != null && !ALL.equals(a.optString("name"))) names.add(a.optString("name"));
+        }
+        ScrollView sc = new ScrollView(this);
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(10);
+        list.setPadding(pad, dp(4), pad, dp(4));
+        sc.addView(list);
+        final AlertDialog[] ref = new AlertDialog[1];
+        for (String name : names) {
+            final boolean cur = name.equals(currentAccount);
+            TextView row = text(cur ? name + "  ✓" : name, 15, cur ? GREEN : TEXT_MAIN, cur);
+            row.setBackgroundResource(R.drawable.bg_card_ripple);
+            row.setPadding(dp(16), dp(14), dp(16), dp(14));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topMargin = dp(8);
+            list.addView(row, lp);
+            row.setOnClickListener(v -> {
+                currentAccount = name;
+                if (timerAdapter != null && timerAdapter.selMode) exitSelMode();
+                accountSel.setText(currentAccount + " ▾");
+                refreshList();
+                if (ref[0] != null) ref[0].dismiss();
+            });
+        }
+        AlertDialog d = new AlertDialog.Builder(this)
+                .setTitle("选择账号")
+                .setView(sc)
+                .setNegativeButton("取消", null)
+                .create();
+        d.show();
+        d.getWindow().setBackgroundDrawableResource(R.drawable.bg_dialog);
+        ref[0] = d;
     }
 
     private void addAccount() {

@@ -9,5 +9,11 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/bg</item>
         <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:alertDialogTheme">@style/PaperDialog</item>
+    </style>
+
+    <style name="PaperDialog" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:colorAccent">@color/primary</item>
     </style>
 </resources>
