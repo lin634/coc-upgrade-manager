@@ -945,7 +945,7 @@ public class MainActivity extends Activity {
         editDialog("手动添加倒计时 — " + currentAccount, preset);
     }
 
-    /** 编辑确认对话框:preset 中每项生成一行(名称 + 天/时/分 + 删除),确认后写入倒计时 */
+    /** 编辑确认对话框:preset 中每项生成一行(名称 + 天/时/分/秒 + 删除),可选加速倍率与持续时长(换算逻辑与加速药水一致),确认后写入倒计时 */
     private void editDialog(String title, JSONArray preset) {
         ScrollView sc = new ScrollView(this);
         LinearLayout box = new LinearLayout(this);
@@ -980,11 +980,165 @@ public class MainActivity extends Activity {
         });
         box.addView(addRowBtn, alp);
 
+        // ---- ⚡ 加速(可选):倍率与持续时长,换算逻辑与「加速药水」一致 ----
+        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        hlp.setMargins(0, dp(8), 0, dp(2));
+        box.addView(text("⚡ 加速(可选):", 13, TEXT_MAIN, true), hlp);
+        box.addView(text("选中倍率后,本批所有行按加速药水同款规则折算剩余时间", 11, TEXT_SUB));
+
+        RadioButton rbNone = smallRadio("不加速");
+        RadioButton rb2 = smallRadio("2×");
+        RadioButton rb10 = smallRadio("10×");
+        RadioButton rb24 = smallRadio("24×");
+        RadioButton rbCustom = smallRadio("自定义倍率");
+        rbNone.setChecked(true);
+        final RadioButton[] multRbs = {rbNone, rb2, rb10, rb24, rbCustom};
+        LinearLayout multLine = new LinearLayout(this);
+        multLine.setGravity(Gravity.CENTER_VERTICAL);
+        multLine.addView(rbNone);
+        multLine.addView(rb2);
+        multLine.addView(rb10);
+        multLine.addView(rb24);
+        box.addView(multLine);
+
+        // 自定义倍率输入行(选中「自定义倍率」后显示),带出上次用过的值
+        final LinearLayout customMultRow = new LinearLayout(this);
+        customMultRow.setGravity(Gravity.CENTER_VERTICAL);
+        customMultRow.setVisibility(View.GONE);
+        final EditText customMultEt = new EditText(this);
+        customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
+                | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        customMultEt.setTextSize(14);
+        customMultEt.setBackgroundResource(R.drawable.bg_input);
+        customMultEt.setPadding(dp(10), dp(8), dp(10), dp(8));
+        customMultEt.setHint("如 1.5");
+        LinearLayout.LayoutParams cmlp = new LinearLayout.LayoutParams(dp(64), dp(38));
+        cmlp.setMargins(dp(24), dp(2), dp(6), 0);
+        customMultRow.addView(customMultEt, cmlp);
+        customMultRow.addView(text("倍(支持小数,如 1.5)", 12, TEXT_SUB));
+        box.addView(customMultRow);
+
+        // 持续时长:默认 1 小时,可选 1 天(24 小时)或自定义
+        final LinearLayout durCard = new LinearLayout(this);
+        durCard.setOrientation(LinearLayout.VERTICAL);
+        durCard.setVisibility(View.GONE);
+        LinearLayout.LayoutParams dclp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dclp.setMargins(dp(24), dp(2), 0, 0);
+        box.addView(durCard, dclp);
+        LinearLayout durHead = new LinearLayout(this);
+        durHead.setGravity(Gravity.CENTER_VERTICAL);
+        durHead.addView(text("持续:", 13, TEXT_MAIN));
+        RadioGroup durRg = new RadioGroup(this);
+        durRg.setOrientation(LinearLayout.HORIZONTAL);
+        final RadioButton dur1h = smallRadio("1小时");
+        dur1h.setId(40);
+        final RadioButton dur1d = smallRadio("1天");
+        dur1d.setId(41);
+        final RadioButton durCustom = smallRadio("自定义");
+        durCustom.setId(42);
+        dur1h.setChecked(true);
+        durRg.addView(dur1h);
+        durRg.addView(dur1d);
+        durRg.addView(durCustom);
+        durHead.addView(durRg);
+        durCard.addView(durHead);
+        final LinearLayout durCustomRow = new LinearLayout(this);
+        durCustomRow.setGravity(Gravity.CENTER_VERTICAL);
+        durCustomRow.setVisibility(View.GONE);
+        final EditText durHEt = numEdit(), durMEt = numEdit();
+        durHEt.setHint("0");
+        durMEt.setHint("30");
+        LinearLayout.LayoutParams dhlp = new LinearLayout.LayoutParams(dp(56), dp(38));
+        dhlp.setMargins(0, dp(2), 0, 0);
+        durCustomRow.addView(durHEt, dhlp);
+        durCustomRow.addView(lblSmall("时"));
+        LinearLayout.LayoutParams dmlp = new LinearLayout.LayoutParams(dp(56), dp(38));
+        dmlp.setMargins(dp(8), dp(2), 0, 0);
+        durCustomRow.addView(durMEt, dmlp);
+        durCustomRow.addView(lblSmall("分"));
+        durCustomRow.addView(text("(如 0时30分 = 30分钟)", 11, TEXT_SUB));
+        durCard.addView(durCustomRow);
+        final TextView effectTv = text("", 12, TEXT_SUB);
+        LinearLayout.LayoutParams elp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        elp.setMargins(dp(24), dp(4), 0, 0);
+        box.addView(effectTv, elp);
+
+        final Runnable updateBoostUi = () -> {
+            boolean boosted = !rbNone.isChecked();
+            durCard.setVisibility(boosted ? View.VISIBLE : View.GONE);
+            customMultRow.setVisibility(rbCustom.isChecked() ? View.VISIBLE : View.GONE);
+            durCustomRow.setVisibility(durCustom.isChecked() ? View.VISIBLE : View.GONE);
+            if (!boosted) { effectTv.setText(""); return; }
+            double m = 0;
+            if (rb2.isChecked()) m = 2;
+            else if (rb10.isChecked()) m = 10;
+            else if (rb24.isChecked()) m = 24;
+            else if (rbCustom.isChecked()) m = parseD(customMultEt.getText().toString());
+            long ds = 3600;
+            if (dur1d.isChecked()) ds = 86400;
+            else if (durCustom.isChecked())
+                ds = parse(durHEt.getText().toString()) * 3600
+                        + parse(durMEt.getText().toString()) * 60;
+            if (m <= 0) {
+                effectTv.setText("请输入有效的自定义倍率");
+            } else if (ds <= 0) {
+                effectTv.setText("请输入有效的加速时长");
+            } else {
+                effectTv.setText("效果:未来 " + fmtBoostDur(ds) + " 内以 " + fmtMult(m)
+                        + " 倍推进,等价于约 "
+                        + String.format(Locale.CHINA, "%.1f", m * ds / 3600.0)
+                        + " 游戏小时工作量");
+            }
+        };
+        android.text.TextWatcher tw = new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(android.text.Editable s) { updateBoostUi.run(); }
+        };
+        customMultEt.addTextChangedListener(tw);
+        durHEt.addTextChangedListener(tw);
+        durMEt.addTextChangedListener(tw);
+        View.OnClickListener pickMult = v -> {
+            for (RadioButton rb : multRbs) rb.setChecked(rb == v);
+            updateBoostUi.run();
+        };
+        for (RadioButton rb : multRbs) rb.setOnClickListener(pickMult);
+        durRg.setOnCheckedChangeListener((g, id) -> updateBoostUi.run());
+        updateBoostUi.run();
+
         final LinearLayout fBox = box;
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setView(sc)
                 .setPositiveButton("确认添加", (d, w) -> {
+                    // ⚡ 加速倍率与持续时长(bm=0 表示不加速)
+                    double bm = 0;
+                    if (rb2.isChecked()) bm = 2;
+                    else if (rb10.isChecked()) bm = 10;
+                    else if (rb24.isChecked()) bm = 24;
+                    else if (rbCustom.isChecked()) {
+                        double cv = parseD(customMultEt.getText().toString());
+                        if (cv <= 0) {
+                            toast("请输入有效的自定义倍率");
+                            return;
+                        }
+                        bm = cv;
+                    }
+                    long boostSec = 0;
+                    if (bm > 0) {
+                        if (dur1d.isChecked()) boostSec = 86400L;
+                        else if (durCustom.isChecked())
+                            boostSec = parse(durHEt.getText().toString()) * 3600L
+                                    + parse(durMEt.getText().toString()) * 60L;
+                        else boostSec = 3600L; // 默认 1 小时
+                        if (boostSec <= 0) {
+                            toast("请输入有效的加速时长");
+                            return;
+                        }
+                    }
                     List<Object[]> toAdd = new ArrayList<>();
                     for (Object[] r : rows)
                         if (r[0] instanceof View && ((View) r[0]).getParent() == fBox)
@@ -997,8 +1151,16 @@ public class MainActivity extends Activity {
                                 + parse(((EditText) r[3]).getText().toString()) * 3600L
                                 + parse(((EditText) r[4]).getText().toString()) * 60L
                                 + parse(((EditText) r[5]).getText().toString());
-                        if (secs > 0)
+                        if (secs > 0) {
+                            if (bm > 0) {
+                                // 与「加速药水」一致:加速期内以 M 倍推进
+                                double progress = bm * boostSec;
+                                secs = secs <= progress
+                                        ? Math.max(Math.round(secs / bm), 1)
+                                        : boostSec + Math.round(secs - progress);
+                            }
                             picked.add(new String[]{nm, String.valueOf(secs)});
+                        }
                     }
                     if (picked.isEmpty()) {
                         toast("没有可添加的项目(时间需大于 0)");
@@ -1018,6 +1180,36 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private double parseD(String s) {
+        try {
+            return Double.parseDouble(s.trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /** 倍率显示:整数不带小数点,小数保留 1 位(与加速药水页一致) */
+    private String fmtMult(double m) {
+        if (m == Math.floor(m) && m < 1e6) return String.valueOf((long) m);
+        return String.format(Locale.CHINA, "%.1f", m);
+    }
+
+    private String fmtBoostDur(long sec) {
+        long h = sec / 3600;
+        long m = (sec % 3600) / 60;
+        if (h > 0 && m > 0) return h + "小时" + m + "分钟";
+        if (h > 0) return h + "小时";
+        return m + "分钟";
+    }
+
+    private RadioButton smallRadio(String s) {
+        RadioButton rb = new RadioButton(this);
+        rb.setText(s);
+        rb.setTextSize(13);
+        rb.setTextColor(TEXT_MAIN);
+        return rb;
     }
 
     private LinearLayout makeRow(LinearLayout box, List<Object[]> rows, String item, long ms) {

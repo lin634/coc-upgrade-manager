@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** 加速药水板块:分建筑/兵种两类,各自倍率,选完手动勾选要加速的项目 */
+/** 加速药水板块:选倍率与时长,手动勾选要加速的项目 */
 public class PotionActivity extends Activity {
 
     private static final int GREEN = 0xFF2E7D32;
@@ -35,22 +35,23 @@ public class PotionActivity extends Activity {
     private static final int TEXT_MAIN = 0xFF1F2937;
     private static final int TEXT_SUB = 0xFF6B7280;
 
-    private static final int CAT_BUILDING = 10, CAT_TROOP = 11;
-    // 建筑升级:2×、10×;兵种升级:2×、24×
-    private static final int[][] MULTS = {{2, 10}, {2, 24}};
-    private static final String[][] MULT_LABELS = {
-            {"2× (1瓶=1小时,完成2小时工作)", "10× (1瓶=1小时,完成10小时工作)"},
-            {"2× (1瓶=1小时,完成2小时工作)", "24× (1瓶=1小时,完成24小时工作)"}
+    // 预设倍率:2×、10×、24×,另支持自定义任意倍率
+    private static final int[] MULTS = {2, 10, 24};
+    private static final String[] MULT_LABELS = {
+            "2× (1瓶=1小时,完成2小时工作)", "10× (1瓶=1小时,完成10小时工作)",
+            "24× (1瓶=1小时,完成24小时工作)"
     };
 
     private String account;
-    private int cat = CAT_BUILDING;
-    private int mult = 2;
+    private double mult = 2;
     private EditText bottlesEt;
     private EditText hoursEt, minutesEt;
-    private LinearLayout bottlesRow, customRow;
+    private EditText customMultEt;
+    private LinearLayout bottlesRow, customRow, customMultRow;
     private boolean customMode = false;
     private TextView effectTv;
+    private EditText calcEtD, calcEtH, calcEtM;
+    private TextView calcTv;
     private RadioGroup subRg;
     private final List<JSONObject> activeTimers = new ArrayList<>();
     private final List<CheckBox> itemBoxes = new ArrayList<>();
@@ -148,41 +149,63 @@ public class PotionActivity extends Activity {
         content.setPadding(dp(12), 0, dp(12), dp(16));
         sc.addView(content);
 
-        // ① 类型
-        LinearLayout c1 = card(LinearLayout.VERTICAL);
-        c1.setPadding(dp(14), dp(12), dp(14), dp(12));
-        c1.addView(text("① 选择药水类型", 14, TEXT_MAIN, true));
-        RadioGroup catRg = new RadioGroup(this);
-        RadioButton rb1 = new RadioButton(this);
-        rb1.setText("建筑升级加速药水(作用于建筑/英雄升级)");
-        rb1.setId(CAT_BUILDING);
-        RadioButton rb2 = new RadioButton(this);
-        rb2.setText("兵种升级加速药水(作用于兵种/法术升级)");
-        rb2.setId(CAT_TROOP);
-        catRg.addView(rb1);
-        catRg.addView(rb2);
-        catRg.check(CAT_BUILDING);
-        catRg.setOnCheckedChangeListener((g, id) -> {
-            cat = id;
-            rebuildSub();
-            updateEffect();
-        });
-        c1.addView(catRg);
-        content.addView(margin(c1, 0, dp(12), 0, 0));
-
-        // ② 倍率
+        // ① 倍率
         LinearLayout c2 = card(LinearLayout.VERTICAL);
         c2.setPadding(dp(14), dp(12), dp(14), dp(12));
-        c2.addView(text("② 选择加速倍率", 14, TEXT_MAIN, true));
+        c2.addView(text("① 选择加速倍率", 14, TEXT_MAIN, true));
         subRg = new RadioGroup(this);
         c2.addView(subRg);
-        content.addView(margin(c2, 0, dp(10), 0, 0));
+        // 自定义倍率输入行(选中「自定义倍率」时显示)
+        customMultRow = new LinearLayout(this);
+        customMultRow.setGravity(Gravity.CENTER_VERTICAL);
+        customMultRow.setVisibility(View.GONE);
+        customMultEt = new EditText(this);
+        customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
+                | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        customMultEt.setHint("如 1.5");
+        customMultEt.setBackgroundResource(R.drawable.bg_input);
+        customMultEt.setPadding(dp(10), dp(10), dp(10), dp(10));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(dp(80),
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        clp.setMargins(dp(24), dp(6), dp(8), 0);
+        customMultRow.addView(customMultEt, clp);
+        customMultRow.addView(text("倍(支持小数,如 1.5 或 20)", 12, TEXT_SUB));
+        c2.addView(customMultRow);
+        // 🧮 减免试算:输入项目剩余时间,按当前倍率与时长实时算可减免的小时数
+        c2.addView(text("🧮 减免试算(输入剩余时间)", 12, TEXT_SUB));
+        LinearLayout calcRow = new LinearLayout(this);
+        calcRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams clpD = new LinearLayout.LayoutParams(dp(44),
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        clpD.setMargins(0, dp(6), dp(2), 0);
+        calcEtD = calcEdit();
+        calcRow.addView(calcEtD, clpD);
+        calcRow.addView(text("天", 12, TEXT_SUB));
+        calcEtH = calcEdit();
+        LinearLayout.LayoutParams clpH2 = new LinearLayout.LayoutParams(dp(44),
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        clpH2.setMargins(dp(6), dp(6), dp(2), 0);
+        calcRow.addView(calcEtH, clpH2);
+        calcRow.addView(text("时", 12, TEXT_SUB));
+        calcEtM = calcEdit();
+        LinearLayout.LayoutParams clpM2 = new LinearLayout.LayoutParams(dp(44),
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        clpM2.setMargins(dp(6), dp(6), dp(2), 0);
+        calcRow.addView(calcEtM, clpM2);
+        calcRow.addView(text("分", 12, TEXT_SUB));
+        c2.addView(calcRow);
+        calcTv = text("", 13, GREEN, true);
+        LinearLayout.LayoutParams calcLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        calcLp.setMargins(0, dp(6), 0, 0);
+        c2.addView(calcTv, calcLp);
+        content.addView(margin(c2, 0, dp(12), 0, 0));
         rebuildSub();
 
-        // ③ 使用时长(按瓶数 或 自定义时长)
+        // ② 使用时长(按瓶数 或 自定义时长)
         LinearLayout c3 = card(LinearLayout.VERTICAL);
         c3.setPadding(dp(14), dp(12), dp(14), dp(12));
-        c3.addView(text("③ 使用时长", 14, TEXT_MAIN, true));
+        c3.addView(text("② 使用时长", 14, TEXT_MAIN, true));
         RadioGroup durRg = new RadioGroup(this);
         durRg.setOrientation(LinearLayout.HORIZONTAL);
         RadioButton drBottles = new RadioButton(this);
@@ -258,13 +281,30 @@ public class PotionActivity extends Activity {
         bottlesEt.addTextChangedListener(tw);
         hoursEt.addTextChangedListener(tw);
         minutesEt.addTextChangedListener(tw);
+        calcEtD.addTextChangedListener(tw);
+        calcEtH.addTextChangedListener(tw);
+        calcEtM.addTextChangedListener(tw);
+        customMultEt.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(android.text.Editable s) {
+                double v = parseMultInput();
+                if (v > 0) {
+                    RadioButton crb = (RadioButton) subRg.findViewById(1002);
+                    if (crb != null) crb.setText("自定义倍率(" + fmtMult(v) + "×,可修改)");
+                    if (subRg.getCheckedRadioButtonId() == 1002) {
+                        mult = v;
+                        updateEffect();
+                    }
+                }
+            }
+        });
 
-        // ④ 项目选择
+        // ③ 项目选择
         LinearLayout c4 = card(LinearLayout.VERTICAL);
         c4.setPadding(dp(14), dp(12), dp(14), dp(12));
-        c4.addView(text("④ 选择要加速的项目", 14, TEXT_MAIN, true));
-        c4.addView(text("只勾选这个药水能加速的项目(建筑药水只加速建筑,兵种药水只加速兵种)",
-                12, TEXT_SUB));
+        c4.addView(text("③ 选择要加速的项目", 14, TEXT_MAIN, true));
+        c4.addView(text("勾选这次药水要加速的项目(可多选)", 12, TEXT_SUB));
         LinearLayout ar = new LinearLayout(this);
         ar.setOrientation(LinearLayout.HORIZONTAL);
         Button all = btn("全选", false, 36);
@@ -322,22 +362,31 @@ public class PotionActivity extends Activity {
 
     private void rebuildSub() {
         subRg.removeAllViews();
-        int[] ms = MULTS[cat == CAT_BUILDING ? 0 : 1];
-        String[] ls = MULT_LABELS[cat == CAT_BUILDING ? 0 : 1];
-        for (int i = 0; i < ms.length; i++) {
+        for (int i = 0; i < MULTS.length; i++) {
             RadioButton rb = new RadioButton(this);
-            rb.setText(ls[i]);
+            rb.setText(MULT_LABELS[i]);
             rb.setId(1000 + i);
             subRg.addView(rb);
         }
+        RadioButton customRb = new RadioButton(this);
+        customRb.setText("自定义倍率");
+        customRb.setId(1002);
+        subRg.addView(customRb);
         subRg.check(1000);
-        mult = ms[0];
+        mult = MULTS[0];
+        customMultRow.setVisibility(View.GONE);
         subRg.setOnCheckedChangeListener((g, id) -> {
-            int idx = id - 1000;
-            int[] arr = MULTS[cat == CAT_BUILDING ? 0 : 1];
-            if (idx >= 0 && idx < arr.length) {
-                mult = arr[idx];
+            if (id == 1002) {
+                customMultRow.setVisibility(View.VISIBLE);
+                mult = parseMultInput(); // 输入为空时为 0,效果栏会提示输入有效倍率
                 updateEffect();
+            } else {
+                customMultRow.setVisibility(View.GONE);
+                int idx = id - 1000;
+                if (idx >= 0 && idx < MULTS.length) {
+                    mult = MULTS[idx];
+                    updateEffect();
+                }
             }
         });
     }
@@ -353,6 +402,18 @@ public class PotionActivity extends Activity {
 
     private double parseD(String s) {
         try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0; }
+    }
+
+    /** 解析自定义倍率输入,非法或 ≤0 返 0 */
+    private double parseMultInput() {
+        double v = parseD(customMultEt.getText().toString());
+        return v > 0 ? v : 0;
+    }
+
+    /** 倍率显示:整数不带小数点,小数保留 1 位 */
+    private String fmtMult(double m) {
+        if (m == Math.floor(m) && m < 1e6) return String.valueOf((long) m);
+        return String.format(java.util.Locale.CHINA, "%.1f", m);
     }
 
     /** 当前药水持续时长(小时),按瓶数或自定义时长 */
@@ -375,11 +436,56 @@ public class PotionActivity extends Activity {
     }
 
     private void updateEffect() {
+        if (mult <= 0) {
+            effectTv.setText("请输入有效的自定义倍率(大于 0)");
+            calcTv.setText("");
+            return;
+        }
         double ph = potionHours();
-        if (ph <= 0) { effectTv.setText("请输入有效的药水时长"); return; }
-        effectTv.setText("效果:未来 " + fmtDur(ph) + " 内以 " + mult + " 倍推进,"
-                + "等价于 " + String.format(java.util.Locale.CHINA, "%.1f", mult * ph)
+        if (ph <= 0) {
+            effectTv.setText("请输入有效的药水时长");
+            calcTv.setText("");
+            return;
+        }
+        effectTv.setText("效果:未来 " + fmtDur(ph) + " 内以 " + fmtMult(mult)
+                + " 倍推进,等价于 "
+                + String.format(java.util.Locale.CHINA, "%.1f", mult * ph)
                 + " 游戏小时工作量\n已选 " + selected.size() + " 个项目");
+        updateCalc();
+    }
+
+    /** 减免试算:按当前倍率与药水时长,算输入的剩余时间能减免多少小时 */
+    private void updateCalc() {
+        double ph = potionHours();
+        if (mult <= 0 || ph <= 0) { calcTv.setText(""); return; }
+        double t = parseD(calcEtD.getText().toString()) * 86400
+                + parseD(calcEtH.getText().toString()) * 3600
+                + parseD(calcEtM.getText().toString()) * 60;
+        if (t <= 0) { calcTv.setText(""); return; }
+        double saved;
+        String note;
+        if (t <= mult * ph * 3600) {
+            // 加速期内就能完成:实际耗时 = 剩余 ÷ 倍率
+            saved = t - t / mult;
+            note = "加速期内即可完成,";
+        } else {
+            saved = (mult - 1) * ph * 3600;
+            note = "";
+        }
+        double h = saved / 3600;
+        String hs = (h == Math.floor(h) && h < 1e6)
+                ? String.valueOf(Math.round(h))
+                : String.format(java.util.Locale.CHINA, "%.1f", h);
+        calcTv.setText(note + "可减免约 " + hs + " 小时工作量");
+    }
+
+    private EditText calcEdit() {
+        EditText e = new EditText(this);
+        e.setInputType(InputType.TYPE_CLASS_NUMBER);
+        e.setTextSize(14);
+        e.setBackgroundResource(R.drawable.bg_input);
+        e.setPadding(dp(6), dp(8), dp(6), dp(8));
+        return e;
     }
 
     private void loadActiveTimers() {
@@ -401,6 +507,7 @@ public class PotionActivity extends Activity {
             toast("请先勾选要加速的项目");
             return;
         }
+        if (mult <= 0) { toast("请输入有效的自定义倍率"); return; }
         JSONObject acc = Store.account(account);
         if (acc == null) return;
         long now = System.currentTimeMillis();
