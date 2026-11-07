@@ -26,8 +26,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -53,11 +51,11 @@ public class MainActivity extends Activity {
     private static final int REQ_PICK = 1;
     private static final int REQ_PERM = 2;
 
-    private static final int GREEN = 0xFF2E7D32;
-    private static final int GREEN_DARK = 0xFF1B5E20;
-    private static final int TEXT_MAIN = 0xFF1F2937;
-    private static final int TEXT_SUB = 0xFF6B7280;
-    private static final int DONE_GREEN = 0xFF188038;
+    private static final int GREEN = 0xFF356B51;
+    private static final int TEXT_MAIN = 0xFF263B31;
+    private static final int TEXT_SUB = 0xFF7B857E;
+    private static final int DONE_GREEN = 0xFF356B51;
+    private static final int DANGER = 0xFFA5744E;
 
     /** 账号下拉里的"全部账号"总览项(哨兵值,不是真实账号名) */
     private static final String ALL = "全部账号";
@@ -188,16 +186,16 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
 
-        // 顶栏
+        // 顶栏(纸感:纸色背景 + 深色标题,状态栏同为纸色)
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(GREEN_DARK);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(16), dp(12), dp(10), dp(12));
-        bar.addView(text("部落冲突升级管理", 17, Color.WHITE, true),
+        bar.setPadding(dp(20), dp(16), dp(14), dp(10));
+        bar.addView(text("部落冲突升级管理", 18, TEXT_MAIN, true),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView gear = text("⚙ 模型设置", 14, Color.WHITE);
-        gear.setPadding(dp(8), dp(6), dp(8), dp(6));
+        TextView gear = text("⚙ 设置", 13, GREEN);
+        gear.setBackgroundResource(R.drawable.bg_btn_secondary);
+        gear.setPadding(dp(12), dp(7), dp(12), dp(7));
         gear.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         bar.addView(gear);
         root.addView(bar);
@@ -243,6 +241,8 @@ public class MainActivity extends Activity {
         addBtn.setOnClickListener(v -> addAccount());
         accountCard.addView(addBtn);
         Button delBtn = btn("－", false, 38);
+        delBtn.setBackgroundResource(R.drawable.bg_btn_danger_ripple);
+        delBtn.setTextColor(DANGER);
         delBtn.setTextSize(16);
         delBtn.setPadding(dp(14), 0, dp(14), 0);
         LinearLayout.LayoutParams dbp = (LinearLayout.LayoutParams) delBtn.getLayoutParams();
@@ -288,6 +288,8 @@ public class MainActivity extends Activity {
             startActivity(it);
         });
         Button clear = btn("清除已完成", false, 46);
+        clear.setBackgroundResource(R.drawable.bg_btn_danger_ripple);
+        clear.setTextColor(DANGER);
         clear.setOnClickListener(v -> clearDone());
         rowB.addView(potion, newLinearLayoutParamsWeight());
         rowB.addView(clear, newLinearLayoutParamsWeight());
@@ -309,6 +311,8 @@ public class MainActivity extends Activity {
         salp.setMargins(dp(4), 0, dp(4), 0);
         selBar.addView(selAll, salp);
         Button selDel = btn("删除", true, 36);
+        selDel.setBackgroundResource(R.drawable.bg_btn_danger_ripple);
+        selDel.setTextColor(DANGER);
         selDel.setOnClickListener(v -> deleteSelected());
         LinearLayout.LayoutParams sdlp = new LinearLayout.LayoutParams(dp(70), dp(36));
         sdlp.setMargins(dp(4), 0, dp(4), 0);
@@ -1100,6 +1104,7 @@ public class MainActivity extends Activity {
         sc.addView(box);
         box.addView(text("请核对名称与剩余时间(可直接修改):", 13, TEXT_SUB));
         final android.widget.CheckBox replaceCb = new android.widget.CheckBox(this);
+        replaceCb.setButtonTintList(android.content.res.ColorStateList.valueOf(GREEN));
         replaceCb.setText("覆盖本账号当前所有倒计时(用识别结果替换原有记录)");
         replaceCb.setTextSize(13);
         replaceCb.setTextColor(TEXT_MAIN);
@@ -1114,20 +1119,13 @@ public class MainActivity extends Activity {
         box.addView(text("⚡ 加速(可选):", 13, TEXT_MAIN, true), hlp);
         box.addView(text("选中倍率后,本批所有行按加速药水同款规则折算剩余时间", 11, TEXT_SUB));
 
-        RadioButton rbNone = smallRadio("不加速");
-        RadioButton rb2 = smallRadio("2×");
-        RadioButton rb10 = smallRadio("10×");
-        RadioButton rb24 = smallRadio("24×");
-        RadioButton rbCustom = smallRadio("自定义倍率");
-        rbNone.setChecked(true);
-        final RadioButton[] multRbs = {rbNone, rb2, rb10, rb24, rbCustom};
-        LinearLayout multLine = new LinearLayout(this);
-        multLine.setGravity(Gravity.CENTER_VERTICAL);
-        multLine.addView(rbNone);
-        multLine.addView(rb2);
-        multLine.addView(rb10);
-        multLine.addView(rb24);
-        box.addView(multLine);
+        final int[] multIdx = {0}; // 0=不加速 1=2× 2=10× 3=24× 4=自定义
+        final Segmented multSeg = new Segmented(this,
+                new String[]{"不加速", "2×", "10×", "24×", "自定义"}, 0, null);
+        LinearLayout.LayoutParams mslp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        mslp.setMargins(0, dp(6), 0, 0);
+        box.addView(multSeg, mslp);
 
         // 自定义倍率输入行(选中「自定义倍率」后显示),样式与药水页一致
         final LinearLayout customMultRow = new LinearLayout(this);
@@ -1161,19 +1159,10 @@ public class MainActivity extends Activity {
         LinearLayout durHead = new LinearLayout(this);
         durHead.setGravity(Gravity.CENTER_VERTICAL);
         durHead.addView(text("持续:", 13, TEXT_MAIN));
-        RadioGroup durRg = new RadioGroup(this);
-        durRg.setOrientation(LinearLayout.HORIZONTAL);
-        final RadioButton dur1h = smallRadio("1小时");
-        dur1h.setId(40);
-        final RadioButton dur1d = smallRadio("1天");
-        dur1d.setId(41);
-        final RadioButton durCustom = smallRadio("自定义");
-        durCustom.setId(42);
-        dur1h.setChecked(true);
-        durRg.addView(dur1h);
-        durRg.addView(dur1d);
-        durRg.addView(durCustom);
-        durHead.addView(durRg);
+        final int[] durIdx = {0}; // 0=1小时 1=1天 2=自定义
+        final Segmented durSeg = new Segmented(this, new String[]{"1小时", "1天", "自定义"}, 0, null);
+        durHead.addView(durSeg, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         durCard.addView(durHead);
         final LinearLayout durCustomRow = new LinearLayout(this);
         durCustomRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -1204,19 +1193,19 @@ public class MainActivity extends Activity {
         box.addView(effectTv, elp);
 
         final Runnable updateBoostUi = () -> {
-            boolean boosted = !rbNone.isChecked();
+            boolean boosted = multIdx[0] != 0;
             durCard.setVisibility(boosted ? View.VISIBLE : View.GONE);
-            customMultRow.setVisibility(rbCustom.isChecked() ? View.VISIBLE : View.GONE);
-            durCustomRow.setVisibility(durCustom.isChecked() ? View.VISIBLE : View.GONE);
+            customMultRow.setVisibility(multIdx[0] == 4 ? View.VISIBLE : View.GONE);
+            durCustomRow.setVisibility(durIdx[0] == 2 ? View.VISIBLE : View.GONE);
             if (!boosted) { effectTv.setText(""); return; }
             double m = 0;
-            if (rb2.isChecked()) m = 2;
-            else if (rb10.isChecked()) m = 10;
-            else if (rb24.isChecked()) m = 24;
-            else if (rbCustom.isChecked()) m = parseD(customMultEt.getText().toString());
+            if (multIdx[0] == 1) m = 2;
+            else if (multIdx[0] == 2) m = 10;
+            else if (multIdx[0] == 3) m = 24;
+            else if (multIdx[0] == 4) m = parseD(customMultEt.getText().toString());
             long ds = 3600;
-            if (dur1d.isChecked()) ds = 86400;
-            else if (durCustom.isChecked())
+            if (durIdx[0] == 1) ds = 86400;
+            else if (durIdx[0] == 2)
                 ds = parse(durHEt.getText().toString()) * 3600
                         + parse(durMEt.getText().toString()) * 60;
             if (m <= 0) {
@@ -1237,12 +1226,14 @@ public class MainActivity extends Activity {
         customMultEt.addTextChangedListener(tw);
         durHEt.addTextChangedListener(tw);
         durMEt.addTextChangedListener(tw);
-        View.OnClickListener pickMult = v -> {
-            for (RadioButton rb : multRbs) rb.setChecked(rb == v);
+        multSeg.setOnSelect(idx -> {
+            multIdx[0] = idx;
             updateBoostUi.run();
-        };
-        for (RadioButton rb : multRbs) rb.setOnClickListener(pickMult);
-        durRg.setOnCheckedChangeListener((g, id) -> updateBoostUi.run());
+        });
+        durSeg.setOnSelect(idx -> {
+            durIdx[0] = idx;
+            updateBoostUi.run();
+        });
         updateBoostUi.run();
 
         final List<Object[]> rows = new ArrayList<>();
@@ -1270,10 +1261,10 @@ public class MainActivity extends Activity {
                 .setPositiveButton("确认添加", (d, w) -> {
                     // ⚡ 加速倍率与持续时长(bm=0 表示不加速)
                     double bm = 0;
-                    if (rb2.isChecked()) bm = 2;
-                    else if (rb10.isChecked()) bm = 10;
-                    else if (rb24.isChecked()) bm = 24;
-                    else if (rbCustom.isChecked()) {
+                    if (multIdx[0] == 1) bm = 2;
+                    else if (multIdx[0] == 2) bm = 10;
+                    else if (multIdx[0] == 3) bm = 24;
+                    else if (multIdx[0] == 4) {
                         double cv = parseD(customMultEt.getText().toString());
                         if (cv <= 0) {
                             toast("请输入有效的自定义倍率");
@@ -1283,8 +1274,8 @@ public class MainActivity extends Activity {
                     }
                     long boostSec = 0;
                     if (bm > 0) {
-                        if (dur1d.isChecked()) boostSec = 86400L;
-                        else if (durCustom.isChecked())
+                        if (durIdx[0] == 1) boostSec = 86400L;
+                        else if (durIdx[0] == 2)
                             boostSec = parse(durHEt.getText().toString()) * 3600L
                                     + parse(durMEt.getText().toString()) * 60L;
                         else boostSec = 3600L; // 默认 1 小时
@@ -1358,14 +1349,6 @@ public class MainActivity extends Activity {
         return m + "分钟";
     }
 
-    private RadioButton smallRadio(String s) {
-        RadioButton rb = new RadioButton(this);
-        rb.setText(s);
-        rb.setTextSize(13);
-        rb.setTextColor(TEXT_MAIN);
-        return rb;
-    }
-
     private LinearLayout makeRow(LinearLayout box, List<Object[]> rows, String item, long ms) {
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -1400,6 +1383,8 @@ public class MainActivity extends Activity {
         row.addView(lblSmall("秒"));
         final LinearLayout fRow = row;
         Button del = btn("✕", false, 38);
+        del.setBackgroundResource(R.drawable.bg_btn_danger_ripple);
+        del.setTextColor(DANGER);
         del.setTextSize(12);
         del.setOnClickListener(v -> {
             box.removeView(fRow);
@@ -1527,6 +1512,7 @@ public class MainActivity extends Activity {
                 int pad = dp(14);
                 v.setPadding(pad, dp(10), pad, dp(10));
                 cb = new android.widget.CheckBox(MainActivity.this);
+                cb.setButtonTintList(android.content.res.ColorStateList.valueOf(GREEN));
                 cb.setClickable(false);
                 cb.setFocusable(false);
                 v.addView(cb, new LinearLayout.LayoutParams(

@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#2E7D32</color>
-    <color name="primary_dark">#1B5E20</color>
-    <color name="bg">#F2F4F3</color>
-    <color name="text_main">#1F2937</color>
-    <color name="text_sub">#6B7280</color>
+    <!-- 纸感自然系调色板:一个强调色 + 一个暖辅色 + 灰阶 -->
+    <color name="primary">#356B51</color>
+    <color name="primary_dark">#2A5641</color>
+    <color name="accent_light">#EAF1E9</color>
+    <color name="bg">#F7F8F4</color>
+    <color name="text_main">#263B31</color>
+    <color name="text_sub">#7B857E</color>
+    <color name="stroke">#E6EAE2</color>
+    <color name="danger">#A5744E</color>
+    <color name="danger_light">#F2EAE1</color>
+    <color name="pill_container">#EEF1EA</color>
     <color name="card">#FFFFFF</color>
-    <color name="btn_secondary">#E7EFE8</color>
-    <color name="chip_bg">#E8F5E9</color>
+    <color name="btn_secondary">#EAF1E9</color>
+    <color name="chip_bg">#EAF1E9</color>
+    <color name="input_fill">#FBFCFA</color>
 </resources>

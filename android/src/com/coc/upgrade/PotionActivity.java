@@ -13,8 +13,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,17 +28,12 @@ import java.util.Set;
 /** 加速药水板块:选倍率与时长,手动勾选要加速的项目 */
 public class PotionActivity extends Activity {
 
-    private static final int GREEN = 0xFF2E7D32;
-    private static final int GREEN_DARK = 0xFF1B5E20;
-    private static final int TEXT_MAIN = 0xFF1F2937;
-    private static final int TEXT_SUB = 0xFF6B7280;
+    private static final int GREEN = 0xFF356B51;
+    private static final int TEXT_MAIN = 0xFF263B31;
+    private static final int TEXT_SUB = 0xFF7B857E;
 
     // 预设倍率:2×、10×、24×,另支持自定义任意倍率
     private static final int[] MULTS = {2, 10, 24};
-    private static final String[] MULT_LABELS = {
-            "2× (1瓶=1小时,完成2小时工作)", "10× (1瓶=1小时,完成10小时工作)",
-            "24× (1瓶=1小时,完成24小时工作)"
-    };
 
     private String account;
     private double mult = 2;
@@ -52,7 +45,7 @@ public class PotionActivity extends Activity {
     private TextView effectTv;
     private EditText calcEtD, calcEtH, calcEtM;
     private TextView calcTv;
-    private RadioGroup subRg;
+    private Segmented multSeg, durSeg;
     private final List<JSONObject> activeTimers = new ArrayList<>();
     private final List<CheckBox> itemBoxes = new ArrayList<>();
     private final Set<String> selected = new HashSet<>();
@@ -129,17 +122,16 @@ public class PotionActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
 
-        // 顶栏
+        // 顶栏(纸感:纸色背景 + 深色标题,状态栏同为纸色)
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(GREEN_DARK);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(10), dp(12), dp(16), dp(12));
-        TextView back = text("‹", 22, Color.WHITE, true);
-        back.setPadding(dp(8), 0, dp(12), 0);
+        bar.setPadding(dp(18), dp(16), dp(16), dp(10));
+        TextView back = text("‹", 22, TEXT_MAIN, true);
+        back.setPadding(dp(4), 0, dp(12), 0);
         back.setOnClickListener(v -> finish());
         bar.addView(back);
-        bar.addView(text("⚡ 加速药水", 17, Color.WHITE, true),
+        bar.addView(text("加速药水", 18, TEXT_MAIN, true),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         root.addView(bar);
 
@@ -153,8 +145,12 @@ public class PotionActivity extends Activity {
         LinearLayout c2 = card(LinearLayout.VERTICAL);
         c2.setPadding(dp(14), dp(12), dp(14), dp(12));
         c2.addView(text("① 选择加速倍率", 14, TEXT_MAIN, true));
-        subRg = new RadioGroup(this);
-        c2.addView(subRg);
+        multSeg = new Segmented(this, new String[]{"2×", "10×", "24×", "自定义倍率"}, 0,
+                idx -> onMultPicked(idx));
+        LinearLayout.LayoutParams mslp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        mslp.topMargin = dp(8);
+        c2.addView(multSeg, mslp);
         // 自定义倍率输入行(选中「自定义倍率」时显示)
         customMultRow = new LinearLayout(this);
         customMultRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -202,34 +198,18 @@ public class PotionActivity extends Activity {
         calcLp.setMargins(0, dp(6), 0, 0);
         c2.addView(calcTv, calcLp);
         content.addView(margin(c2, 0, dp(12), 0, 0));
-        rebuildSub();
 
         // ② 使用时长(按瓶数 或 自定义时长)
         LinearLayout c3 = card(LinearLayout.VERTICAL);
         c3.setPadding(dp(14), dp(12), dp(14), dp(12));
         c3.addView(text("② 使用时长", 14, TEXT_MAIN, true));
-        RadioGroup durRg = new RadioGroup(this);
-        durRg.setOrientation(LinearLayout.HORIZONTAL);
-        RadioButton drBottles = new RadioButton(this);
-        drBottles.setText("按瓶数(每瓶1小时)");
-        drBottles.setTextSize(13);
-        drBottles.setTextColor(TEXT_SUB);
-        drBottles.setId(20);
-        RadioButton drCustom = new RadioButton(this);
-        drCustom.setText("自定义时长");
-        drCustom.setTextSize(13);
-        drCustom.setTextColor(TEXT_SUB);
-        drCustom.setId(21);
-        durRg.addView(drBottles);
-        durRg.addView(drCustom);
-        durRg.check(20);
-        durRg.setOnCheckedChangeListener((g, id) -> {
-            customMode = (id == 21);
+        durSeg = new Segmented(this, new String[]{"按瓶数", "自定义时长"}, 0, idx -> {
+            customMode = (idx == 1);
             bottlesRow.setVisibility(customMode ? View.GONE : View.VISIBLE);
             customRow.setVisibility(customMode ? View.VISIBLE : View.GONE);
             updateEffect();
         });
-        c3.addView(durRg);
+        c3.addView(durSeg, marginLp(dp(8)));
         // 按瓶数行
         bottlesRow = new LinearLayout(this);
         bottlesRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -296,13 +276,9 @@ public class PotionActivity extends Activity {
             @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
             @Override public void afterTextChanged(android.text.Editable s) {
                 double v = parseMultInput();
-                if (v > 0) {
-                    RadioButton crb = (RadioButton) subRg.findViewById(2000);
-                    if (crb != null) crb.setText("自定义倍率(" + fmtMult(v) + "×,可修改)");
-                    if (subRg.getCheckedRadioButtonId() == 2000) {
-                        mult = v;
-                        updateEffect();
-                    }
+                if (v > 0 && multSeg.getSelected() == MULTS.length) {
+                    mult = v;
+                    updateEffect();
                 }
             }
         });
@@ -338,6 +314,7 @@ public class PotionActivity extends Activity {
                 CheckBox cb = new CheckBox(this);
                 cb.setTextSize(14);
                 cb.setTextColor(TEXT_MAIN);
+                cb.setButtonTintList(android.content.res.ColorStateList.valueOf(GREEN));
                 long remain = t.optLong("end_ts") - System.currentTimeMillis();
                 cb.setText(t.optString("item") + "  (剩余 " + MainActivity.fmtRemaining(remain) + ")");
                 final String id = t.optString("id");
@@ -367,35 +344,16 @@ public class PotionActivity extends Activity {
         updateEffect();
     }
 
-    private void rebuildSub() {
-        subRg.removeAllViews();
-        for (int i = 0; i < MULTS.length; i++) {
-            RadioButton rb = new RadioButton(this);
-            rb.setText(MULT_LABELS[i]);
-            rb.setId(1000 + i);
-            subRg.addView(rb);
+    /** 倍率分段选择回调:预设直接取值,「自定义」展开输入框 */
+    private void onMultPicked(int idx) {
+        if (idx < MULTS.length) {
+            customMultRow.setVisibility(View.GONE);
+            mult = MULTS[idx];
+        } else {
+            customMultRow.setVisibility(View.VISIBLE);
+            mult = parseMultInput(); // 输入为空时为 0,效果栏会提示输入有效倍率
         }
-        RadioButton customRb = new RadioButton(this);
-        customRb.setText("自定义倍率");
-        customRb.setId(2000);
-        subRg.addView(customRb);
-        subRg.check(1000);
-        mult = MULTS[0];
-        customMultRow.setVisibility(View.GONE);
-        subRg.setOnCheckedChangeListener((g, id) -> {
-            if (id == 2000) {
-                customMultRow.setVisibility(View.VISIBLE);
-                mult = parseMultInput(); // 输入为空时为 0,效果栏会提示输入有效倍率
-                updateEffect();
-            } else {
-                customMultRow.setVisibility(View.GONE);
-                int idx = id - 1000;
-                if (idx >= 0 && idx < MULTS.length) {
-                    mult = MULTS[idx];
-                    updateEffect();
-                }
-            }
-        });
+        updateEffect();
     }
 
     private int bottles() {

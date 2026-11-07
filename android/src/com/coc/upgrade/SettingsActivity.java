@@ -28,10 +28,9 @@ import org.json.JSONObject;
 /** 模型设置:完全自定义服务商(可添加多个)+ 默认模型 + 测试连接 */
 public class SettingsActivity extends Activity {
 
-    private static final int GREEN = 0xFF2E7D32;
-    private static final int GREEN_DARK = 0xFF1B5E20;
-    private static final int TEXT_MAIN = 0xFF1F2937;
-    private static final int TEXT_SUB = 0xFF6B7280;
+    private static final int GREEN = 0xFF356B51;
+    private static final int TEXT_MAIN = 0xFF263B31;
+    private static final int TEXT_SUB = 0xFF7B857E;
 
     private ListView provList;
     private TextView provEmpty;
@@ -96,16 +95,16 @@ public class SettingsActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
 
         // 顶栏
+        // 顶栏(纸感)
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(GREEN_DARK);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(10), dp(12), dp(16), dp(12));
-        TextView back = text("‹", 22, Color.WHITE, true);
-        back.setPadding(dp(8), 0, dp(12), 0);
+        bar.setPadding(dp(18), dp(16), dp(16), dp(10));
+        TextView back = text("‹", 22, TEXT_MAIN, true);
+        back.setPadding(dp(4), 0, dp(12), 0);
         back.setOnClickListener(v -> finish());
         bar.addView(back);
-        bar.addView(text("模型设置", 17, Color.WHITE, true),
+        bar.addView(text("模型设置", 18, TEXT_MAIN, true),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         root.addView(bar);
 
