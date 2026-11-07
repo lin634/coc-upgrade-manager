@@ -263,6 +263,14 @@ public class MainActivity extends Activity {
         rowA.addView(manual, newLinearLayoutParamsWeight());
         content.addView(margin(rowA, 0, dp(10), 0, 0));
 
+        // 导入村庄 JSON(游戏内「设置 → 更多设置 → 导出村庄数据」)
+        LinearLayout rowC = new LinearLayout(this);
+        rowC.setOrientation(LinearLayout.HORIZONTAL);
+        Button impJson = btn("📋 导入村庄JSON", false, 46);
+        impJson.setOnClickListener(v -> importJsonDialog());
+        rowC.addView(impJson, newLinearLayoutParamsWeight());
+        content.addView(margin(rowC, 0, dp(6), 0, 0));
+
         LinearLayout rowB = new LinearLayout(this);
         rowB.setOrientation(LinearLayout.HORIZONTAL);
         Button potion = btn("⚡ 加速药水", false, 46);
@@ -943,6 +951,143 @@ public class MainActivity extends Activity {
         Store.put(one, "seconds", 0L);
         preset.put(one);
         editDialog("手动添加倒计时 — " + currentAccount, preset);
+    }
+
+    /** 导入游戏内「导出村庄数据」JSON:解析带 timer 的项目生成倒计时 */
+    private void importJsonDialog() {
+        if (ALL.equals(currentAccount)) {
+            toast("请先在上方选择一个具体账号");
+            return;
+        }
+        if (Store.account(currentAccount) == null) {
+            toast("请先点「＋」添加一个账号");
+            return;
+        }
+        ScrollView sc = new ScrollView(this);
+        EditText et = new EditText(this);
+        et.setTextSize(12);
+        et.setGravity(Gravity.TOP);
+        et.setTypeface(Typeface.MONOSPACE);
+        et.setBackgroundResource(R.drawable.bg_input);
+        et.setPadding(dp(10), dp(10), dp(10), dp(10));
+        int p = dp(14);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(p, dp(8), p, 0);
+        box.addView(text("把游戏内「设置 → 更多设置 → 导出村庄数据」复制的内容粘贴到这里,"
+                + "自动识别正在升级的项目:", 12, TEXT_SUB));
+        LinearLayout.LayoutParams etlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(220));
+        etlp.setMargins(0, dp(8), 0, 0);
+        box.addView(et, etlp);
+        et.setText(clipboardVillageJson());
+        sc.addView(box);
+        new AlertDialog.Builder(this)
+                .setTitle("导入村庄 JSON — " + currentAccount)
+                .setView(sc)
+                .setPositiveButton("解析并添加", (d, w) -> {
+                    JSONArray preset;
+                    try {
+                        preset = parseVillageJson(et.getText().toString());
+                    } catch (Exception e) {
+                        errDialog("解析失败", "内容不是有效的村庄数据 JSON:\n" + e.getMessage());
+                        return;
+                    }
+                    if (preset.length() == 0) {
+                        toast("没有发现正在升级的项目(数据里没有 timer)");
+                        return;
+                    }
+                    editDialog("导入村庄 JSON — " + currentAccount, preset);
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    /** 剪贴板里若已有村庄导出数据(含 buildings 字段)则直接带出 */
+    private String clipboardVillageJson() {
+        try {
+            android.content.ClipboardManager cm =
+                    (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (cm == null || !cm.hasPrimaryClip()) return "";
+            CharSequence cs = cm.getPrimaryClip().getItemAt(0).getText();
+            String s = cs == null ? "" : cs.toString();
+            return s.contains("\"buildings\"") ? s : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /** 解析导出 JSON:收集各区块里带 timer 的条目,名字带当前→目标等级 */
+    private JSONArray parseVillageJson(String text) throws Exception {
+        int a = text.indexOf('{'), b = text.lastIndexOf('}');
+        if (a < 0 || b <= a) throw new Exception("未找到 JSON 内容");
+        JSONObject root = new JSONObject(text.substring(a, b + 1));
+        JSONArray preset = new JSONArray();
+        String[][] sections = {
+                {"buildings", "建筑"}, {"heroes", "英雄"}, {"units", "兵种"},
+                {"spells", "法术"}, {"siege_machines", "攻城机械"}, {"traps", "陷阱"},
+                {"pets", "宠物"}
+        };
+        for (String[] sec : sections) {
+            JSONArray arr = root.optJSONArray(sec[0]);
+            if (arr == null) continue;
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                long timer = o.optLong("timer");
+                if (timer <= 0) continue;
+                int id = o.optInt("data"), lvl = o.optInt("lvl");
+                JSONObject one = new JSONObject();
+                Store.put(one, "item", villageName(sec[1], id) + " " + lvl + "→" + (lvl + 1) + "级");
+                Store.put(one, "seconds", timer);
+                preset.put(one);
+            }
+        }
+        return preset;
+    }
+
+    /** dataId → 中文名(参考社区整理的官方数据 ID 表);未知 ID 显示为类别+编号,可在确认前改名 */
+    private static final String VILLAGE_NAMES =
+            "1000000:兵营,1000001:大本营,1000002:圣水收集器,1000003:圣水罐,"
+            + "1000004:金矿,1000005:金罐,1000006:训练营,1000007:实验室,"
+            + "1000008:加农炮,1000009:箭塔,1000010:城墙,1000011:法师塔,"
+            + "1000012:防空火箭,1000013:迫击炮,1000014:部落城堡,1000015:建筑工人小屋,"
+            + "1000019:电磁塔,1000020:法术工厂,1000021:X连弩,1000023:暗黑重油钻井,"
+            + "1000024:暗黑重油罐,1000026:暗黑训练营,1000027:地狱塔,1000028:空气炮,"
+            + "1000029:暗黑法术工厂,1000031:天鹰火炮,1000032:炸弹塔,1000034:建筑大师大本营,"
+            + "1000046:星光实验室,1000059:工坊,1000067:投石炮,1000068:宠物小屋,"
+            + "1000070:铁匠铺,1000071:英雄大厅,"
+            + "28000000:蛮王,28000001:弓箭女皇,28000002:大守护者,28000003:战争机器,"
+            + "28000004:飞盾战神,28000005:战斗直升机,28000006:亡灵王子,"
+            + "4000000:野蛮人,4000001:弓箭手,4000002:哥布林,4000003:巨人,"
+            + "4000004:炸弹人,4000005:气球兵,4000006:法师,4000007:天使,"
+            + "4000008:飞龙,4000009:皮卡超人,4000010:亡灵,4000011:野猪骑士,"
+            + "4000012:瓦基丽武神,4000013:戈仑石人,4000015:女巫,4000017:熔岩猎犬,"
+            + "4000022:巨石投手,4000023:飞龙宝宝,4000024:掘地矿工,"
+            + "4000051:攻城战车,4000052:战斗飞艇,4000053:雪怪,4000058:冰戈仑,"
+            + "4000059:电龙,4000062:石砸攻城兽,4000065:骑龙者,4000075:攻城兵营,"
+            + "4000082:猎头者,4000087:原木战车,4000091:烈焰投石车,4000092:战斗钻机,"
+            + "4000095:雷电泰坦,4000097:见习守护者,4000110:树根骑士,4000123:德鲁伊,"
+            + "4000132:投掷手,4000135:兵种发射车,4000150:熔炉,"
+            + "26000000:闪电法术,26000001:治疗法术,26000002:狂暴法术,26000003:弹跳法术,"
+            + "26000005:冰冻法术,26000009:毒药法术,26000010:地震法术,26000011:急速法术,"
+            + "26000016:镜像法术,26000017:骷髅法术,26000028:蝙蝠法术,26000035:隐形法术,"
+            + "26000053:召回法术,26000070:丛生法术,26000098:复活法术,"
+            + "73000000:莱西,73000001:电鸮,73000002:牦牛,73000003:独角兽,"
+            + "73000011:愤怒果冻,73000016:喷嚏怪";
+
+    private static java.util.HashMap<String, String> VILLAGE_MAP;
+
+    private static String villageName(String cat, int id) {
+        if (VILLAGE_MAP == null) {
+            VILLAGE_MAP = new java.util.HashMap<>();
+            for (String pair : VILLAGE_NAMES.split(",")) {
+                int c = pair.indexOf(':');
+                if (c > 0) VILLAGE_MAP.put(pair.substring(0, c).trim(), pair.substring(c + 1).trim());
+            }
+        }
+        String n = VILLAGE_MAP.get(String.valueOf(id));
+        return n == null ? cat + " " + id : n;
     }
 
     /** 编辑确认对话框:preset 中每项生成一行(名称 + 天/时/分/秒 + 删除),可选加速倍率与持续时长(换算逻辑与加速药水一致),确认后写入倒计时 */
