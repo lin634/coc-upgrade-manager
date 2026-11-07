@@ -1129,21 +1129,26 @@ public class MainActivity extends Activity {
         multLine.addView(rb24);
         box.addView(multLine);
 
-        // 自定义倍率输入行(选中「自定义倍率」后显示),带出上次用过的值
+        // 自定义倍率输入行(选中「自定义倍率」后显示),样式与药水页一致
         final LinearLayout customMultRow = new LinearLayout(this);
         customMultRow.setGravity(Gravity.CENTER_VERTICAL);
+        customMultRow.setClipChildren(false);
         customMultRow.setVisibility(View.GONE);
         final EditText customMultEt = new EditText(this);
         customMultEt.setInputType(InputType.TYPE_CLASS_NUMBER
                 | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         customMultEt.setTextSize(14);
+        customMultEt.setGravity(Gravity.CENTER);
         customMultEt.setBackgroundResource(R.drawable.bg_input);
-        customMultEt.setPadding(dp(10), dp(8), dp(10), dp(8));
-        LinearLayout.LayoutParams cmlp = new LinearLayout.LayoutParams(dp(64), dp(38));
-        cmlp.setMargins(dp(24), dp(2), dp(6), 0);
+        customMultEt.setPadding(dp(8), dp(2), dp(8), dp(2));
+        LinearLayout.LayoutParams cmlp = new LinearLayout.LayoutParams(dp(48), dp(32));
+        cmlp.setMargins(dp(24), 0, dp(6), 0);
         customMultRow.addView(customMultEt, cmlp);
         customMultRow.addView(text("倍(支持小数,如 1.5)", 12, TEXT_SUB));
-        box.addView(customMultRow);
+        LinearLayout.LayoutParams cmlp2 = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cmlp2.setMargins(0, dp(2), 0, 0);
+        box.addView(customMultRow, cmlp2);
 
         // 持续时长:默认 1 小时,可选 1 天(24 小时)或自定义
         final LinearLayout durCard = new LinearLayout(this);
@@ -1172,20 +1177,26 @@ public class MainActivity extends Activity {
         durCard.addView(durHead);
         final LinearLayout durCustomRow = new LinearLayout(this);
         durCustomRow.setGravity(Gravity.CENTER_VERTICAL);
+        durCustomRow.setClipChildren(false);
         durCustomRow.setVisibility(View.GONE);
         final EditText durHEt = numEdit(), durMEt = numEdit();
         durHEt.setHint("0");
         durMEt.setHint("30");
-        LinearLayout.LayoutParams dhlp = new LinearLayout.LayoutParams(dp(56), dp(38));
-        dhlp.setMargins(0, dp(2), 0, 0);
+        durHEt.setPadding(dp(6), dp(2), dp(6), dp(2));
+        durMEt.setPadding(dp(6), dp(2), dp(6), dp(2));
+        LinearLayout.LayoutParams dhlp = new LinearLayout.LayoutParams(dp(42), dp(32));
+        dhlp.setMargins(0, 0, 0, 0);
         durCustomRow.addView(durHEt, dhlp);
         durCustomRow.addView(lblSmall("时"));
-        LinearLayout.LayoutParams dmlp = new LinearLayout.LayoutParams(dp(56), dp(38));
-        dmlp.setMargins(dp(8), dp(2), 0, 0);
+        LinearLayout.LayoutParams dmlp = new LinearLayout.LayoutParams(dp(42), dp(32));
+        dmlp.setMargins(dp(8), 0, 0, 0);
         durCustomRow.addView(durMEt, dmlp);
         durCustomRow.addView(lblSmall("分"));
         durCustomRow.addView(text("(如 0时30分 = 30分钟)", 11, TEXT_SUB));
-        durCard.addView(durCustomRow);
+        LinearLayout.LayoutParams drlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        drlp.setMargins(0, dp(2), 0, 0);
+        durCard.addView(durCustomRow, drlp);
         final TextView effectTv = text("", 12, TEXT_SUB);
         LinearLayout.LayoutParams elp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
