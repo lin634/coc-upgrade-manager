@@ -1089,8 +1089,7 @@ public class MainActivity extends Activity {
             } else {
                 effectTv.setText("效果:未来 " + fmtBoostDur(ds) + " 内以 " + fmtMult(m)
                         + " 倍推进,等价于约 "
-                        + String.format(Locale.CHINA, "%.1f", m * ds / 3600.0)
-                        + " 游戏小时工作量");
+                        + fmtBoostDur(Math.round(m * ds)) + " 游戏工作量");
             }
         };
         android.text.TextWatcher tw = new android.text.TextWatcher() {

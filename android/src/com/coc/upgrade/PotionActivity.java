@@ -448,9 +448,8 @@ public class PotionActivity extends Activity {
             return;
         }
         effectTv.setText("效果:未来 " + fmtDur(ph) + " 内以 " + fmtMult(mult)
-                + " 倍推进,等价于 "
-                + String.format(java.util.Locale.CHINA, "%.1f", mult * ph)
-                + " 游戏小时工作量\n已选 " + selected.size() + " 个项目");
+                + " 倍推进,等价于 " + fmtDur(mult * ph) + " 游戏工作量\n已选 "
+                + selected.size() + " 个项目");
         updateCalc();
     }
 
@@ -472,11 +471,7 @@ public class PotionActivity extends Activity {
             saved = (mult - 1) * ph * 3600;
             note = "";
         }
-        double h = saved / 3600;
-        String hs = (h == Math.floor(h) && h < 1e6)
-                ? String.valueOf(Math.round(h))
-                : String.format(java.util.Locale.CHINA, "%.1f", h);
-        calcTv.setText(note + "可减免约 " + hs + " 小时工作量");
+        calcTv.setText(note + "可减免约 " + fmtDur(saved / 3600.0) + "的工作量");
     }
 
     private EditText calcEdit() {
