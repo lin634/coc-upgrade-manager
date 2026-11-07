@@ -962,24 +962,6 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         rlp.setMargins(0, dp(6), 0, dp(2));
         box.addView(replaceCb, rlp);
-        final List<Object[]> rows = new ArrayList<>();
-        for (int i = 0; i < preset.length(); i++) {
-            JSONObject it = preset.optJSONObject(i);
-            if (it != null) makeRow(box, rows, it.optString("item"), it.optLong("seconds") * 1000);
-        }
-        if (rows.isEmpty()) makeRow(box, rows, "", 0);
-        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        alp.setMargins(0, dp(8), 0, dp(8));
-        final Button addRowBtn = btn("＋ 再加一行", false, 38);
-        addRowBtn.setOnClickListener(v -> {
-            makeRow(box, rows, "", 0);
-            // 新增行插到按钮上方后,把按钮移回最底部
-            box.removeView(addRowBtn);
-            box.addView(addRowBtn, alp);
-        });
-        box.addView(addRowBtn, alp);
-
         // ---- ⚡ 加速(可选):倍率与持续时长,换算逻辑与「加速药水」一致 ----
         LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -1107,6 +1089,24 @@ public class MainActivity extends Activity {
         for (RadioButton rb : multRbs) rb.setOnClickListener(pickMult);
         durRg.setOnCheckedChangeListener((g, id) -> updateBoostUi.run());
         updateBoostUi.run();
+
+        final List<Object[]> rows = new ArrayList<>();
+        for (int i = 0; i < preset.length(); i++) {
+            JSONObject it = preset.optJSONObject(i);
+            if (it != null) makeRow(box, rows, it.optString("item"), it.optLong("seconds") * 1000);
+        }
+        if (rows.isEmpty()) makeRow(box, rows, "", 0);
+        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        alp.setMargins(0, dp(8), 0, dp(8));
+        final Button addRowBtn = btn("＋ 再加一行", false, 38);
+        addRowBtn.setOnClickListener(v -> {
+            makeRow(box, rows, "", 0);
+            // 新增行插到按钮上方后,把按钮移回最底部
+            box.removeView(addRowBtn);
+            box.addView(addRowBtn, alp);
+        });
+        box.addView(addRowBtn, alp);
 
         final LinearLayout fBox = box;
         new AlertDialog.Builder(this)
